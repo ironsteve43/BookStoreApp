@@ -1,0 +1,7 @@
+# Flask web framework
+Flask>=1.1.2
+
+
+# For testing
+pytest
+requests
