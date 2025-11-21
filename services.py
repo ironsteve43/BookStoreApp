@@ -1,66 +1,173 @@
-from dao import DAO
-from models import Livro, Usuario, Emprestimo, calcula_data_prevista, hoje_iso
-from typing import Optional
+"""
+Camada de serviços - Lógica de negócio
+"""
+
+from models import Livro, Emprestimo
+from validators import ValidationError
+import sqlite3
+
+class LivroService:
+    """Serviço para operações com livros"""
+    
+    @staticmethod
+    def cadastrar_livro(dados_validados):
+        """
+        Cadastra um novo livro
+        
+        Args:
+            dados_validados: Dados já validados do livro
+            
+        Returns:
+            Dicionário com dados do livro cadastrado
+            
+        Raises:
+            ValidationError: Se ISBN já existir
+        """
+        try:
+            livro_id = Livro.criar(
+                titulo=dados_validados['titulo'],
+                autor=dados_validados['autor'],
+                isbn=dados_validados['isbn'],
+                categoria=dados_validados['categoria']
+            )
+            
+            return {
+                'id': livro_id,
+                **dados_validados,
+                'disponivel': 1,
+                'total_emprestimos': 0
+            }
+            
+        except sqlite3.IntegrityError:
+            raise ValidationError('ISBN já cadastrado no sistema')
+    
+    @staticmethod
+    def buscar_livro(livro_id):
+        """
+        Busca um livro por ID
+        
+        Args:
+            livro_id: ID do livro
+            
+        Returns:
+            Dados do livro ou None
+        """
+        return Livro.buscar_por_id(livro_id)
+    
+    @staticmethod
+    def listar_livros(filtros=None):
+        """
+        Lista livros com filtros opcionais
+        
+        Args:
+            filtros: Dicionário com filtros
+            
+        Returns:
+            Lista de livros
+        """
+        return Livro.listar(filtros)
+    
+    @staticmethod
+    def obter_mais_emprestados(limite=10):
+        """
+        Obtém livros mais emprestados
+        
+        Args:
+            limite: Número máximo de resultados
+            
+        Returns:
+            Lista de livros mais emprestados
+        """
+        return Livro.mais_emprestados(limite)
 
 
-class BibliotecaService:
-    def __init__(self, dao: DAO = None):
-        self.dao = dao or DAO()
-
-
-def criar_livro(self, titulo: str, autor: str, isbn: str, categoria: str) -> int:
-    # validações simples
-    if not titulo or not autor or not isbn:
-        raise ValueError("Título, autor e ISBN são obrigatórios")
-    # evitar ISBN duplicado
-    existentes = self.dao.buscar_livros()
-    for l in existentes:
-        if l.isbn == isbn:
-            raise ValueError("Livro com ISBN já cadastrado")
-    livro = Livro(id=None, titulo=titulo, autor=autor, isbn=isbn, categoria=categoria, disponivel=True)
-    return self.dao.inserir_livro(livro)
-
-
-def emprestar_livro(self, id_livro: int, id_usuario: int, dias=14) -> int:
-    livro = self.dao.obter_livro(id_livro)
-    if not livro:
-        raise ValueError("Livro não encontrado")
-    if not livro.disponivel:
-        raise ValueError("Livro não está disponível")
-    usuario = self.dao.obter_usuario(id_usuario)
-    if not usuario:
-        raise ValueError("Usuário não encontrado")
-    # evita empréstimo duplicado (mesmo livro sem devolução)
-    ativo = self.dao.obter_emprestimo_ativo_por_livro(id_livro)
-    if ativo:
-        raise ValueError("Livro já emprestado")
-    data_e = hoje_iso()
-    data_prev = calcula_data_prevista(dias=dias)
-    emprestimo = Emprestimo(id=None, id_livro=id_livro, id_usuario=id_usuario, data_emprestimo=data_e, data_prevista=data_prev, data_devolucao=None)
-    eid = self.dao.inserir_emprestimo(emprestimo)
-    self.dao.atualizar_disponibilidade(id_livro, False)
-    return eid
-
-
-def devolver_livro(self, id_emprestimo: int) -> None:
-    # busca empréstimo
-    emprestimos = self.dao.listar_emprestimos()
-    alvo = None
-    for e in emprestimos:
-        if e['id'] == id_emprestimo:
-            alvo = e
-            break
-    if not alvo:
-        raise ValueError("Empréstimo não encontrado")
-    if alvo['data_devolucao']:
-        raise ValueError("Empréstimo já devolvido")
-    data_dev = hoje_iso()
-    self.dao.registrar_devolucao(id_emprestimo, data_dev)
-    self.dao.atualizar_disponibilidade(alvo['id_livro'], True)
-
-
-def buscar_livros(self, titulo=None, autor=None, categoria=None):
-    return self.dao.buscar_livros(titulo=titulo, autor=autor, categoria=categoria)
-
-def livros_mais_emprestados(self, limit=10):
-    return self.dao.livros_mais_emprestados(limit=limit)
+class EmprestimoService:
+    """Serviço para operações com empréstimos"""
+    
+    @staticmethod
+    def realizar_emprestimo(dados_validados, dias_prazo=14):
+        """
+        Realiza um empréstimo de livro
+        
+        Args:
+            dados_validados: Dados validados (livro_id, usuario)
+            dias_prazo: Dias de prazo para devolução
+            
+        Returns:
+            Dicionário com dados do empréstimo
+            
+        Raises:
+            ValidationError: Se livro não existir, estiver indisponível ou usuário já tiver empréstimo ativo
+        """
+        livro_id = dados_validados['livro_id']
+        usuario = dados_validados['usuario']
+        
+        # Verificar se livro existe
+        livro = Livro.buscar_por_id(livro_id)
+        if not livro:
+            raise ValidationError('Livro não encontrado')
+        
+        # Verificar se livro está disponível
+        if livro['disponivel'] == 0:
+            raise ValidationError('Livro indisponível para empréstimo')
+        
+        # Verificar se usuário já tem empréstimo ativo deste livro
+        emprestimo_existente = Emprestimo.buscar_ativo_por_livro_e_usuario(livro_id, usuario)
+        if emprestimo_existente:
+            raise ValidationError('Usuário já possui empréstimo ativo deste livro')
+        
+        # Criar empréstimo
+        emprestimo_id = Emprestimo.criar(livro_id, usuario, dias_prazo)
+        
+        # Atualizar disponibilidade e contador do livro
+        Livro.atualizar_disponibilidade(livro_id, False)
+        Livro.incrementar_emprestimos(livro_id)
+        
+        # Buscar empréstimo criado
+        emprestimo = Emprestimo.buscar_por_id(emprestimo_id)
+        
+        return emprestimo
+    
+    @staticmethod
+    def devolver_livro(emprestimo_id):
+        """
+        Registra a devolução de um livro
+        
+        Args:
+            emprestimo_id: ID do empréstimo
+            
+        Returns:
+            Data da devolução
+            
+        Raises:
+            ValidationError: Se empréstimo não existir ou já estiver devolvido
+        """
+        # Buscar empréstimo
+        emprestimo = Emprestimo.buscar_por_id(emprestimo_id)
+        
+        if not emprestimo:
+            raise ValidationError('Empréstimo não encontrado')
+        
+        if emprestimo['ativo'] == 0:
+            raise ValidationError('Empréstimo já foi devolvido')
+        
+        # Registrar devolução
+        data_devolucao = Emprestimo.devolver(emprestimo_id)
+        
+        # Liberar livro
+        Livro.atualizar_disponibilidade(emprestimo['livro_id'], True)
+        
+        return data_devolucao
+    
+    @staticmethod
+    def listar_emprestimos(filtros=None):
+        """
+        Lista empréstimos com filtros opcionais
+        
+        Args:
+            filtros: Dicionário com filtros
+            
+        Returns:
+            Lista de empréstimos
+        """
+        return Emprestimo.listar(filtros)
