@@ -1,7 +1,3 @@
-"""
-Módulo de validações
-"""
-
 class ValidationError(Exception):
     """Exceção customizada para erros de validação"""
     pass

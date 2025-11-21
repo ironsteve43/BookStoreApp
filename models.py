@@ -1,7 +1,3 @@
-"""
-Modelos de dados para Livros e Empréstimos
-"""
-
 from datetime import datetime, timedelta
 from database import get_db
 import sqlite3

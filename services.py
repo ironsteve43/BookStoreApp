@@ -1,7 +1,3 @@
-"""
-Camada de serviços - Lógica de negócio
-"""
-
 from models import Livro, Emprestimo
 from validators import ValidationError
 import sqlite3

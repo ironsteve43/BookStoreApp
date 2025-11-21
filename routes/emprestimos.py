@@ -1,7 +1,3 @@
-"""
-Rotas para operações com empréstimos
-"""
-
 from flask import Blueprint, request, jsonify, current_app
 from services import EmprestimoService
 from validators import EmprestimoValidator, ValidationError

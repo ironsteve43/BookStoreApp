@@ -1,10 +1,3 @@
-"""
-Sistema de Biblioteca Digital - Aplicação Principal
-Desenvolvedor: Lucas de Oliveira Ferreira
-
-Aplicação Flask refatorada com arquitetura modular
-"""
-
 from flask import Flask, jsonify
 import os
 

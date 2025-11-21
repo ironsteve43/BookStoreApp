@@ -1,7 +1,3 @@
-"""
-Rotas para operações com livros
-"""
-
 from flask import Blueprint, request, jsonify
 from services import LivroService
 from validators import LivroValidator, ValidationError

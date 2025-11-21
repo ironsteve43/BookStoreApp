@@ -1,7 +1,3 @@
-"""
-Rotas para relatórios
-"""
-
 from flask import Blueprint, request, jsonify
 from services import LivroService
 

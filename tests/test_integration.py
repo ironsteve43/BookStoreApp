@@ -1,10 +1,3 @@
-"""
-Testes de Integração / End-to-End (E2E)
-Testam o sistema completo através da API REST
-
-Total: 7 testes de integração/e2e
-"""
-
 import pytest
 import os
 from app import create_app
