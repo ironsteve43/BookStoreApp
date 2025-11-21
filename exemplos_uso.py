@@ -1,8 +1,3 @@
-"""
-Script de demonstração do Sistema de Biblioteca Digital
-Exemplos práticos de uso da API
-"""
-
 import requests
 import json
 

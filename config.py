@@ -1,7 +1,3 @@
-"""
-Configurações do Sistema de Biblioteca Digital
-"""
-
 import os
 
 class Config:

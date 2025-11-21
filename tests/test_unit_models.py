@@ -5,7 +5,7 @@ from models import Livro, Emprestimo
 
 
 class TestLivroModelUnit:
-    """Testes de UNIDADE reais do modelo Livro"""
+    """Testes de UNIDADE domodelo Livro"""
     
     @patch('models.get_db')
     def test_should_create_book_and_return_id(self, mock_get_db):
@@ -99,7 +99,7 @@ class TestEmprestimoModelUnit:
     
     @patch('models.get_db')
     @patch('models.datetime')
-    def test_should_create_emprestimo_with_correct_dates(self, mock_datetime, mock_get_db):
+    def test_should_create_emprestimo_with_correct_id(self, mock_datetime, mock_get_db):
         """Deve criar empréstimo com datas corretas (MOCKADO)"""
         # Arrange
         mock_conn = Mock()

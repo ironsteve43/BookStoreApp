@@ -28,7 +28,6 @@ CREATE TABLE emprestimos (
     FOREIGN KEY (livro_id) REFERENCES livros (id)
 );
 
--- Índices para melhorar performance
 CREATE INDEX idx_livros_isbn ON livros(isbn);
 CREATE INDEX idx_livros_disponivel ON livros(disponivel);
 CREATE INDEX idx_emprestimos_ativo ON emprestimos(ativo);

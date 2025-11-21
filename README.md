@@ -17,16 +17,41 @@ O sistema demonstra como testes automatizados garantem a qualidade durante evolu
 
 ## Tecnologias Utilizadas
 
-### Python - Web com Flask
-- **Python 3.8+**
+### Backend
+- **Python 3.10+** - Linguagem principal
 - **Flask** - Framework web
 - **SQLite** - Banco de dados
 - **pytest** - Framework de testes
-- **Requests** - Testes de integração
+- **pytest-cov** - Cobertura de testes
+
+### Qualidade & DevOps
+- **GitHub Actions** - CI/CD automatizado
+- **Codecov** - Relatórios de cobertura
+- **pytest** - Suite de testes completa
   
-## Funcionalidades para Testar:
-- Cadastro de livros com validação
-- Empréstimo apenas de livros disponíveis
-- Cálculo automático de datas de devolução
-- Prevenção de empréstimos duplicados
-- Buscas e filtros
+## Como Executar o Sistema
+
+### Pré-requisitos
+- Python 3.8 ou superior
+- pip (gerenciador de pacotes do Python)
+
+### Inicialização da aplicação
+```shell
+#Instalar dependências
+pip install -r requirements.txt
+
+#Inicializar aplicação
+python app.py   
+
+#Rodar exemplos (com aplicação rodando)
+python exemplos_uso.py   
+
+```
+
+### Execução dos testes com cobertura
+```shell
+pytest --cov=. --cov-report=html --cov-config=pytest.ini 
+```
+
+
+
